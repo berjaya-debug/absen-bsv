@@ -1,4 +1,4 @@
-const CACHE_NAME = 'absen-bsv-v2';
+const CACHE_NAME = 'absen-bsv-v3';
 const urlsToCache = [
   'index.html',
   'manifest.json',
