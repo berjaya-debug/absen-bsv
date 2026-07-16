@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Absensi BSV</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a6338c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Absensi BSV">
+  <link rel="apple-touch-icon" href="icons/icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+
+  <script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Mencegah Chrome memunculkan prompt otomatis bawaan
+      e.preventDefault();
+      // Simpan event agar bisa dipicu nanti
+      deferredPrompt = e;
+      
+      // Tampilkan SweetAlert2 untuk mengajak user install
+      setTimeout(() => {
+        Swal.fire({
+          title: 'Pasang Aplikasi?',
+          text: "Instal aplikasi di HP ! melalui Google Chrome",
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonColor: '#8f2a78',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Ya, Instal Sekarang',
+          cancelButtonText: 'Nanti saja'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Jalankan prompt instalasi
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+              if (choiceResult.outcome === 'accepted') {
+                console.log('User menginstal aplikasi');
+              }
+              deferredPrompt = null;
+            });
+          }
+        });
+      }, 3000); // Muncul setelah 3 detik halaman dibuka
+    });
+    
+    // Logika pendaftaran Service Worker (Tetap diperlukan)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('SW terdaftar!'))
+          .catch(err => console.error('SW gagal:', err));
+      });
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --purple:    #8f2a78;
+      --purple-m:  #c2429e;
+      --purple-l:  #e7a9d4;
+      --gold:      #e07b1a;
+      --gold-m:    #f7941e;
+      --gold-pale: #fff1e0;
+      --maroon:    #ffc72c;
+      --bg:        #fff8f2;
+      --surface:   #ffffff;
+      --border:    #f5ddd0;
+      --text:      #241023;
+      --muted:     #9c7a92;
+      --shadow:    rgba(143,42,120,0.16);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px 12px 48px;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 90% 45% at 50% -5%, rgba(58,12,163,0.06) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 35% at 85% 95%, rgba(184,134,11,0.05) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: 26px;
+      box-shadow: 0 1px 0 rgba(58,12,163,0.06), 0 12px 48px var(--shadow), 0 0 0 1px rgba(58,12,163,0.05);
+      width: 100%; max-width: 420px;
+      overflow: hidden; position: relative; z-index: 1;
+      animation: cardEntrance 0.7s cubic-bezier(0.22,1.4,0.36,1) both;
+    }
+    @keyframes cardEntrance {
+      from { opacity: 0; transform: translateY(40px) scale(0.94); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .card-top {
+      background: #ffffff;
+      border-bottom: 2px solid var(--border);
+      padding: 30px 28px 26px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      position: relative; overflow: hidden;
+    }
+    .card-top::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--purple), var(--gold-m), var(--maroon));
+    }
+    .card-top::after {
+      content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-m), transparent);
+    }
+    .header-badge {
+      font-family: 'Cinzel', serif;
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 5px; text-transform: uppercase;
+      color: var(--purple);
+      background: linear-gradient(135deg, rgba(58,12,163,0.07), rgba(184,134,11,0.07));
+      border: 1px solid rgba(58,12,163,0.15);
+      padding: 4px 14px; border-radius: 20px;
+      animation: popIn 0.5s cubic-bezier(0.34,1.5,0.64,1) 0.15s both;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.75) translateY(-6px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .header-logo-img {
+      width: 220px; max-width: 72%; height: auto; object-fit: contain;
+      animation: logoReveal 0.8s cubic-bezier(0.34,1.4,0.64,1) 0.25s both;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.08));
+    }
+    @keyframes logoReveal {
+      from { opacity: 0; transform: scale(0.82) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .header-rule {
+      width: 56px; height: 1.5px;
+      background: linear-gradient(90deg, transparent, var(--gold-m), transparent);
+      border-radius: 2px;
+      animation: fadeIn 0.4s ease 0.5s both;
+    }
+    .header-sub {
+      font-family: 'Cinzel', serif; font-size: 10px; font-weight: 500;
+      color: var(--muted); letter-spacing: 3px; text-transform: uppercase;
+      animation: fadeIn 0.4s ease 0.55s both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .card-body {
+      padding: 26px 22px 28px;
+      animation: slideUp 0.5s ease 0.35s both;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .field-label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--purple-m); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+    }
+    select {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      border: 1.5px solid var(--border); font-size: 14px;
+      font-family: 'Nunito', sans-serif; font-weight: 600; outline: none;
+      background: #faf8ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c2429e' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+      appearance: none; -webkit-appearance: none;
+      color: var(--text); transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    select:focus { border-color: var(--purple-m); box-shadow: 0 0 0 3px rgba(90,35,200,0.10); }
+    .section-gap { margin-top: 18px; }
+    .status-container { display: flex; gap: 10px; }
+    .status-opt {
+      flex: 1; padding: 12px 8px; border: 2px solid var(--border); border-radius: 12px;
+      text-align: center; cursor: pointer; font-weight: 700; font-size: 13px;
+      color: var(--purple-m);
+      transition: all 0.25s cubic-bezier(0.34,1.3,0.64,1);
+      background: #faf8ff; user-select: none;
+    }
+    .status-opt:active { transform: scale(0.96); }
+    .status-opt.active {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--purple-m) 100%);
+      color: #fff; border-color: transparent;
+      box-shadow: 0 5px 20px rgba(58,12,163,0.30);
+      transform: translateY(-2px);
+    }
+    .tugas-box {
+      margin-top: 14px; background: var(--gold-pale);
+      padding: 13px 15px; border-radius: 12px;
+      border: 1.5px solid rgba(184,134,11,0.22);
+      display: flex; align-items: center; gap: 12px; transition: box-shadow 0.2s;
+    }
+    .tugas-box:has(input:checked) { box-shadow: 0 0 0 2px rgba(184,134,11,0.35); }
+    .tugas-box input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: var(--gold); flex-shrink: 0; }
+    .tugas-label { cursor: pointer; font-weight: 700; color: var(--text); font-size: 13.5px; }
+    .tugas-label small { display: block; font-weight: 400; color: var(--gold); font-size: 11.5px; margin-top: 2px; }
+    #previewContainer {
+      width: 100%; height: 220px; border: 2px dashed var(--purple-l);
+      border-radius: 16px; margin-top: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: #faf8ff; cursor: pointer; overflow: hidden; position: relative;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    #previewContainer:hover { border-color: var(--purple-m); box-shadow: 0 0 0 4px rgba(90,35,200,0.08); }
+    #previewContainer:active { background: #f0e8ff; }
+    #imgPreview { width: 100%; height: 100%; object-fit: cover; display: none; }
+    #placeholderText { text-align: center; color: var(--purple-m); pointer-events: none; }
+    #placeholderText .cam-icon { font-size: 44px; line-height: 1; }
+    #placeholderText b { display: block; margin-top: 8px; font-size: 14px; letter-spacing: 0.5px; color: var(--text); }
+    #placeholderText small { font-size: 12px; color: var(--muted); margin-top: 4px; display: block; }
+    #gpsStatus { font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; color: var(--muted); }
+    #gpsStatus.ok  { color: #2e7d32; }
+    #gpsStatus.err { color: #c62828; }
+    .btn-submit {
+      width: 100%; padding: 15px; margin-top: 18px;
+      border-radius: 14px; border: none; font-size: 15px; font-weight: 800;
+      font-family: 'Nunito', sans-serif; letter-spacing: 1px; cursor: pointer;
+      background: linear-gradient(135deg, var(--purple) 0%, var(--purple-m) 100%);
+      color: #fff; box-shadow: 0 5px 22px rgba(58,12,163,0.30);
+      transition: all 0.25s cubic-bezier(0.34,1.3,0.64,1);
+      position: relative; overflow: hidden;
+    }
+    .btn-submit::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, transparent 55%);
+    }
+    .btn-submit:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(58,12,163,0.38); }
+    .btn-submit:active { transform: scale(0.98); box-shadow: 0 2px 10px rgba(58,12,163,0.20); }
+    .btn-submit:disabled { background: #d5ccea; color: #a898cc; box-shadow: none; cursor: not-allowed; transform: none; }
+    #msg { text-align: center; margin-top: 10px; font-weight: 700; font-size: 13px; color: var(--purple-m); min-height: 18px; }
+
+   /*pengajuan cuti*/
+    .footer-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      color: var(--muted); /* Menggunakan warna abu-abu yang sudah ada di variabel root Anda */
+      text-decoration: none;
+      font-family: 'Nunito', sans-serif;
+      opacity: 0.7;
+    }
+    
+    .footer-link:hover {
+      text-decoration: underline;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="card-top">
+    <div class="header-badge">Absensi</div>
+    <img class="header-logo-img" src="logo-bsv.png" alt="Bali Sunset Villa">
+    <div class="header-rule"></div>
+    <div class="header-sub">Divisi Administrasi</div>
+  </div>
+  <div class="card-body">
+    <label class="field-label">👤 Nama Staff</label>
+    <select id="namaStaff">
+      <option value="">— Pilih Nama Anda —</option>
+    </select>
+    <div class="section-gap">
+      <label class="field-label">📌 Status Kehadiran</label>
+      <div class="status-container">
+        <div class="status-opt active" id="optHadir"  onclick="pilihStatus('HADIR')">✅ HADIR</div>
+        <div class="status-opt"        id="optPulang" onclick="pilihStatus('PULANG')">🏠 PULANG</div>
+      </div>
+    </div>
+    <div class="tugas-box">
+      <input type="checkbox" id="isTugasKeluar">
+      <label for="isTugasKeluar" class="tugas-label">
+        🚗 TUGAS KELUAR
+        <small>Lokasi GPS dicatat sebagai alamat keluar</small>
+      </label>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment"
+           style="display:none;" onchange="handleFile(this)">
+    <div id="previewContainer" onclick="document.getElementById('cameraInput').click()">
+      <div id="placeholderText">
+        <div class="cam-icon">📷</div>
+        <b>KETUK UNTUK FOTO</b>
+        <small>Wajah &amp; Background Lokasi</small>
+      </div>
+      <img id="imgPreview" alt="preview foto absen">
+    </div>
+    <div id="gpsStatus">📡 Menunggu GPS...</div>
+    <button class="btn-submit" id="btnKirim" onclick="submitAbsensi()">
+      📨 KIRIM ABSENSI
+    </button>
+    <div id="msg"></div>
+  </div>
+</div>
+
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzra5La3O_2CnempeRJwZRMMQeIHVJeNqAKBd480DH5l9t8kpktwzc8YRMRTMMvk8_l/exec";
+
+  var base64Foto   = null;
+  var statusAbsen  = "HADIR";
+  var koordinatGPS = null;
+  var gpsLoading   = false;
+
+  const elNama = document.getElementById('namaStaff');
+  const elGPS  = document.getElementById('gpsStatus');
+  const elBtn  = document.getElementById('btnKirim');
+  const elMsg  = document.getElementById('msg');
+
+  window.onload = function () { loadStaff(); ambilGPS(); };
+
+  function loadStaff() {
+    fetch(GAS_URL + "?action=getStaffList")
+      .then(r => r.json())
+      .then(names => {
+        names.forEach(n => {
+          if (!n) return;
+          const o = document.createElement('option');
+          o.value = n; o.textContent = n;
+          elNama.appendChild(o);
+        });
+      })
+      .catch(() => {
+        elMsg.innerHTML = '<span style="color:#c62828">⚠️ Gagal memuat daftar staff. Cek koneksi.</span>';
+      });
+  }
+
+  function pilihStatus(s) {
+    statusAbsen = s;
+    document.getElementById('optHadir').classList.toggle('active',  s === 'HADIR');
+    document.getElementById('optPulang').classList.toggle('active', s === 'PULANG');
+  }
+
+  function handleFile(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ratio  = Math.min(1, 800 / img.width);
+        canvas.width  = Math.round(img.width  * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const nama  = elNama.value || "-";
+        const tugas = document.getElementById('isTugasKeluar').checked;
+        const now   = new Date();
+        const jam   = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        const tgl   = now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+
+        const baris = [
+          "Bali Sunset Villa",
+          statusAbsen + "  —  " + (tugas ? "TUGAS KELUAR" : "KANTOR"),
+          nama,
+          tgl + "  " + jam
+        ];
+
+        const fs  = Math.max(14, Math.round(canvas.width / 26));
+        const pad = Math.round(fs * 0.65);
+        const lh  = fs + pad;
+        const bxH = lh * baris.length + pad * 2;
+        const bxY = canvas.height - bxH;
+
+        ctx.fillStyle = 'rgba(0,0,0,0.62)';
+        ctx.fillRect(0, bxY, canvas.width, bxH);
+        ctx.fillStyle = '#8f2a78';
+        ctx.fillRect(0, bxY, canvas.width, Math.max(3, Math.round(fs * 0.22)));
+
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        baris.forEach((teks, i) => {
+          const y = bxY + pad + lh * i;
+          if (i === 0) {
+            ctx.font = 'bold ' + Math.round(fs * 1.05) + 'px sans-serif';
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillText(teks, pad+1, y+1);
+            ctx.fillStyle = '#ffb020'; ctx.fillText(teks, pad, y);
+          } else {
+            ctx.font = (i === 2 ? 'bold ' : '') + fs + 'px sans-serif';
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillText(teks, pad+1, y+1);
+            ctx.fillStyle = 'white'; ctx.fillText(teks, pad, y);
+          }
+        });
+
+        base64Foto = canvas.toDataURL('image/jpeg', 0.82);
+        const prev = document.getElementById('imgPreview');
+        prev.src = base64Foto; prev.style.display = 'block';
+        document.getElementById('placeholderText').style.display = 'none';
+        input.value = '';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  function ambilGPS() {
+    if (!navigator.geolocation) {
+      elGPS.textContent = '❌ Browser tidak mendukung GPS'; return;
+    }
+    gpsLoading = true;
+    elGPS.textContent = '📡 Mengunci GPS...';
+    elGPS.className = '';
+    navigator.geolocation.getCurrentPosition(
+      pos => { simpanKoordinat(pos); setTimeout(ambilGPS, 30000); },
+      () => {
+        navigator.geolocation.getCurrentPosition(
+          pos => { simpanKoordinat(pos); setTimeout(ambilGPS, 30000); },
+          () => {
+            gpsLoading = false; koordinatGPS = null;
+            elGPS.innerHTML = '⚠️ GPS gagal. <a href="#" onclick="ambilGPS();return false;">Coba lagi</a>';
+            elGPS.className = 'err';
+            setTimeout(ambilGPS, 15000);
+          },
+          { enableHighAccuracy: false, timeout: 20000, maximumAge: 30000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: 25000, maximumAge: 30000 }
+    );
+  }
+
+  function simpanKoordinat(pos) {
+    koordinatGPS = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    gpsLoading   = false;
+    elGPS.textContent = '✅ GPS terkunci (±' + Math.round(pos.coords.accuracy) + 'm)';
+    elGPS.className   = 'ok';
+  }
+
+  function submitAbsensi() {
+    const nama  = elNama.value;
+    const tugas = document.getElementById('isTugasKeluar').checked;
+    if (!nama)       return Swal.fire({ title:"Nama Kosong",  text:"Silakan pilih nama Anda!", icon:"warning", confirmButtonColor:"#8f2a78" });
+    if (!base64Foto) return Swal.fire({ title:"Foto Kosong",  text:"Ambil foto terlebih dahulu!", icon:"warning", confirmButtonColor:"#8f2a78" });
+    if (gpsLoading)  return Swal.fire({ title:"Harap Tunggu", text:"GPS sedang mengunci lokasi...", icon:"info", confirmButtonColor:"#8f2a78" });
+    if (!koordinatGPS) {
+      elBtn.disabled = true; elMsg.innerHTML = '⏳ Mencoba GPS...';
+      navigator.geolocation.getCurrentPosition(
+        pos => { simpanKoordinat(pos); kirim(pos.coords.latitude, pos.coords.longitude, tugas); },
+        () => {
+          navigator.geolocation.getCurrentPosition(
+            pos => { simpanKoordinat(pos); kirim(pos.coords.latitude, pos.coords.longitude, tugas); },
+            () => {
+              elBtn.disabled = false; elMsg.innerHTML = '';
+              Swal.fire("GPS Gagal", "Gagal mendapatkan lokasi.<br><br>Tips:<br>• Aktifkan GPS HP<br>• Izinkan akses lokasi browser<br>• Coba dekat jendela", "error");
+            },
+            { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
+          );
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 }
+      );
+      return;
+    }
+    kirim(koordinatGPS.lat, koordinatGPS.lon, tugas);
+  }
+
+  function kirim(lat, lon, tugasKeluar) {
+    elBtn.disabled = true; elMsg.innerHTML = '⏳ Mengirim absensi...';
+    fetch(GAS_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body   : JSON.stringify({
+        action: 'prosesAbsenAdmin', lat, lon,
+        namaStaff: elNama.value,
+        imageBase64: base64Foto,
+        status: statusAbsen,
+        isTugasKeluar: tugasKeluar
+      })
+    })
+    .then(r => r.json())
+    .then(res => {
+      elBtn.disabled = false; elMsg.innerHTML = '';
+      if (typeof res === 'object' && res.status === "BERHASIL") {
+        Swal.fire({
+          icon: 'success', title: 'Berhasil! ⭐',
+          html: '<b>' + res.nama + '</b><br>' + res.pesan +
+                '<br><small style="color:#888">Jam: ' + res.jam + ' | Jarak: ' + res.jarak + '</small>',
+          confirmButtonColor: '#8f2a78'
+        }).then(() => location.reload());
+      } else {
+        const err = typeof res === 'string' ? res : (res.error || JSON.stringify(res));
+        Swal.fire('Gagal', err, 'error');
+      }
+    })
+    .catch(err => {
+      elBtn.disabled = false; elMsg.innerHTML = '';
+      Swal.fire('Error Koneksi', 'Gagal terhubung ke server.<br>' + err.message, 'error');
+    });
+  }
+</script>
+
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSd_63cbGmBGfHqUL8oq2noSGS6a5kYesobaZnRIPIBn9IOouA/viewform?usp=publish-editor" 
+     target="_blank" 
+     class="footer-link">
+     Pengajuan Cuti
+  </a>
+  <div id="ios-instruction" style="display:none; margin-top:20px; padding:10px; border:1px dashed #8f2a78; border-radius:10px; font-size:12px; color:#8f2a78;">
+  📱 <b>Pengguna iPhone:</b> Klik ikon <img src="https://img.icons8.com/ios/20/8f2a78/export.png"/> (Share) lalu pilih <b>"Add to Home Screen"</b> untuk memasang aplikasi.
+    </div>
+    
+    <script>
+      // Deteksi jika user memakai iPhone dan tidak sedang membuka mode standalone (PWA)
+      const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+      }
+      const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+    
+      if (isIos() && !isInStandaloneMode()) {
+        document.getElementById('ios-instruction').style.display = 'block';
+      }
+    </script>
+
+      <div id="install-banner" style="display:none; position:fixed; bottom:20px; left:20px; right:20px; background:#8f2a78; color:white; padding:15px; border-radius:12px; z-index:9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align:center;">
+        <p style="margin:0 0 10px 0; font-size:14px;">Gunakan aplikasi agar absen lebih stabil</p>
+        <button id="btn-install" style="background:#ffd700; color:#1a0835; border:none; padding:8px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">INSTAL SEKARANG</button>
+      </div>
+      
+      <script>
+      let deferredPrompt;
+      const installBanner = document.getElementById('install-banner');
+      const btnInstall = document.getElementById('btn-install');
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+          // Simpan event agar bisa dipicu lewat tombol kita sendiri
+          e.preventDefault();
+          deferredPrompt = e;
+          // Tampilkan banner buatan kita
+          installBanner.style.display = 'block';
+      });
+      
+      btnInstall.addEventListener('click', (e) => {
+          installBanner.style.display = 'none';
+          if (deferredPrompt) {
+              deferredPrompt.prompt();
+              deferredPrompt.userChoice.then((choiceResult) => {
+                  if (choiceResult.outcome === 'accepted') {
+                      console.log('User menginstal PWA');
+                  }
+                  deferredPrompt = null;
+              });
+          }
+      });
+      
+      // Sembunyikan banner jika aplikasi sudah terinstal (mode standalone)
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+          installBanner.style.display = 'none';
+      }
+      </script>
+  
+</body>
+</html>

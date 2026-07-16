@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Install Absensi BSV – Bali Sunset Villa</title>
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Absensi BSV">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+  <link rel="apple-touch-icon" href="icons/icon-180x180.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --purple:   #8f2a78;
+      --purple-m: #c2429e;
+      --gold:     #f7941e;
+      --gold-dk:  #e07b1a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Latar abstrak */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(143,42,120,0.55) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 90% 100%, rgba(224,123,26,0.25) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 30% at 5%  80%,  rgba(143,42,120,0.18) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Partikel bintang */
+    .stars {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 20% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(2px 2px at 45% 60%, rgba(247,148,30,0.4) 0%, transparent 100%),
+        radial-gradient(2px 2px at 80% 30%, rgba(247,148,30,0.3) 0%, transparent 100%);
+    }
+
+    .wrap {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 400px;
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+
+    /* ── LOGO AREA ── */
+    .logo-wrap {
+      width: 110px; height: 110px;
+      background: #000;
+      border-radius: 26px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(247,148,30,0.5);
+      box-shadow:
+        0 0 0 6px rgba(247,148,30,0.08),
+        0 0 40px rgba(143,42,120,0.6),
+        0 8px 30px rgba(0,0,0,0.7);
+      animation: logoFloat 3s ease-in-out infinite;
+      overflow: hidden;
+    }
+    .logo-wrap img { width: 85%; height: 85%; object-fit: contain; }
+
+    @keyframes logoFloat {
+      0%,100% { transform: translateY(0px);   box-shadow: 0 0 0 6px rgba(247,148,30,0.08), 0 0 40px rgba(143,42,120,0.6), 0 8px 30px rgba(0,0,0,0.7); }
+      50%      { transform: translateY(-8px);  box-shadow: 0 0 0 8px rgba(247,148,30,0.12), 0 0 55px rgba(143,42,120,0.8), 0 20px 40px rgba(0,0,0,0.6); }
+    }
+
+    /* ── TEKS HEADER ── */
+    .header-area {
+      margin-top: 22px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      font-family: 'Cinzel', serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(247,148,30,0.35);
+      background: rgba(247,148,30,0.08);
+      padding: 4px 14px; border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .app-name {
+      font-family: 'Cinzel', serif;
+      font-size: 26px; font-weight: 700;
+      color: #fff;
+      line-height: 1.15;
+      text-shadow: 0 2px 20px rgba(143,42,120,0.8);
+    }
+    .app-name span { color: var(--gold); }
+    .app-sub {
+      font-size: 13px; color: rgba(255,255,255,0.55);
+      margin-top: 8px; letter-spacing: 0.5px;
+    }
+
+    /* ── GARIS EMAS ── */
+    .gold-line {
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      border-radius: 2px;
+      margin: 18px auto 0;
+    }
+
+    /* ── CARD INSTALL ── */
+    .install-card {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 22px;
+      padding: 22px 20px 20px;
+      margin-top: 22px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .install-card-title {
+      font-size: 13px; font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      text-align: center; margin-bottom: 16px;
+    }
+
+    /* Steps Android */
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 14px;
+      background: rgba(143,42,120,0.18);
+      border: 1px solid rgba(194,66,158,0.25);
+      border-radius: 14px;
+    }
+    .step-num {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--purple), var(--purple-m));
+      color: #fff; font-weight: 800; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 10px rgba(143,42,120,0.4);
+    }
+    .step-text { font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 600; line-height: 1.4; }
+    .step-text strong { color: var(--gold); }
+
+    /* Steps iOS */
+    .ios-steps { display: flex; flex-direction: column; gap: 10px; }
+    .ios-step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 13px;
+      background: rgba(224,123,26,0.12);
+      border: 1px solid rgba(247,148,30,0.2);
+      border-radius: 13px;
+    }
+    .ios-step-icon { font-size: 24px; flex-shrink: 0; }
+    .ios-step-text { font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 600; line-height: 1.4; }
+    .ios-step-text strong { color: var(--gold); }
+
+    /* Tombol install Android */
+    .btn-install {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      color: #000; font-family: 'Nunito', sans-serif;
+      font-weight: 800; font-size: 16px; letter-spacing: 0.5px;
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(224,123,26,0.45);
+      transition: all 0.25s;
+      margin-top: 18px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-install:hover  { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(224,123,26,0.55); }
+    .btn-install:active { transform: scale(0.97); }
+    .btn-install:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Tombol buka app (sudah install) */
+    .btn-open {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-m));
+      color: #fff; font-family: 'Nunito', sans-serif;
+      font-weight: 800; font-size: 16px; letter-spacing: 0.5px;
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(143,42,120,0.45);
+      transition: all 0.25s;
+      margin-top: 18px;
+      text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-open:hover  { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(143,42,120,0.55); }
+    .btn-open:active { transform: scale(0.97); }
+
+    /* Info sudah install */
+    .already-card {
+      width: 100%;
+      background: rgba(143,42,120,0.15);
+      border: 1px solid rgba(194,66,158,0.3);
+      border-radius: 22px;
+      padding: 28px 22px;
+      margin-top: 22px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .already-icon { font-size: 52px; margin-bottom: 10px; }
+    .already-title {
+      font-family: 'Cinzel', serif;
+      font-size: 18px; font-weight: 700; color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .already-sub { font-size: 13.5px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+
+    /* Animasi masuk */
+    .wrap > * {
+      animation: fadeUp 0.6s ease both;
+    }
+    .wrap > *:nth-child(1) { animation-delay: 0.1s; }
+    .wrap > *:nth-child(2) { animation-delay: 0.2s; }
+    .wrap > *:nth-child(3) { animation-delay: 0.25s; }
+    .wrap > *:nth-child(4) { animation-delay: 0.35s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Spinner loading */
+    .spinner {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 3px solid rgba(0,0,0,0.2);
+      border-top-color: #000;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer */
+    .footer {
+      margin-top: 24px; text-align: center;
+      font-size: 11px; color: rgba(255,255,255,0.25);
+      letter-spacing: 0.5px;
+    }
+
+    /* Pulse ring pada logo saat menunggu prompt */
+    .pulse-ring {
+      position: absolute;
+      width: 110px; height: 110px;
+      border-radius: 30px;
+      border: 2px solid rgba(247,148,30,0.4);
+      animation: pulse 2s ease-out infinite;
+      pointer-events: none;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(1);   opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .logo-container { position: relative; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+<div class="stars"></div>
+
+<div class="wrap">
+
+  <!-- Logo -->
+  <div class="logo-container">
+    <div class="pulse-ring" id="pulseRing"></div>
+    <div class="logo-wrap">
+      <img src="icons/icon-512x512.png" alt="Bali Sunset Villa">
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header-area">
+    <div class="badge">Bali Sunset Villa</div>
+    <div class="app-name">Absensi <span>BSV</span></div>
+    <div class="app-sub">Divisi Administrasi &nbsp;·&nbsp; Sistem Kehadiran Digital</div>
+  </div>
+
+  <div class="gold-line"></div>
+
+  <!-- Konten dinamis: diisi JS -->
+  <div id="mainContent"></div>
+
+  <div class="footer">© Bali Sunset Villa · Seminyak, Bali</div>
+</div>
+
+<script>
+  // ============================================================
+  // URL aplikasi utama (sesuaikan dengan URL GitHub Pages Anda)
+  // ============================================================
+  const APP_URL = 'index.html';   // file absensi di repo yang sama
+
+  // ============================================================
+  // Deteksi environment
+  // ============================================================
+  function isStandalone() {
+    return (
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches
+    );
+  }
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  }
+  function isAndroid() {
+    return /android/i.test(navigator.userAgent);
+  }
+  function isSupportsPWA() {
+    return 'serviceWorker' in navigator;
+  }
+
+  // ============================================================
+  // Tangkap prompt install (harus sebelum window.onload)
+  // ============================================================
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Hentikan animasi pulse (sudah siap)
+    const pr = document.getElementById('pulseRing');
+    if (pr) pr.style.animationPlayState = 'running';
+    renderContent();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    // Setelah install berhasil, langsung redirect ke app
+    setTimeout(() => { window.location.href = APP_URL; }, 800);
+  });
+
+  // ============================================================
+  // Render konten berdasarkan kondisi
+  // ============================================================
+  function renderContent() {
+    const container = document.getElementById('mainContent');
+
+    // ── KONDISI 1: Sudah berjalan sebagai PWA standalone ──────
+    if (isStandalone()) {
+      // Langsung redirect ke app utama
+      window.location.replace(APP_URL);
+      return;
+    }
+
+    // ── KONDISI 2: Android — prompt tersedia ──────────────────
+    if (deferredPrompt) {
+      container.innerHTML = `
+        <div class="install-card">
+          <div class="install-card-title">📲 Pasang di HP Anda</div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-text">Ketuk tombol <strong>Install Sekarang</strong> di bawah ini</div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-text">Pilih <strong>"Install"</strong> pada dialog yang muncul</div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-text">Ikon <strong>Absensi BSV</strong> akan muncul di layar utama HP</div>
+            </div>
+          </div>
+          <button class="btn-install" id="btnInstall" onclick="doInstall()">
+            <span id="btnLabel">⬇️ &nbsp;Install Sekarang</span>
+            <div class="spinner" id="spinner"></div>
+          </button>
+        </div>`;
+      return;
+    }
+
+    // ── KONDISI 3: iOS ────────────────────────────────────────
+    if (isIOS()) {
+      container.innerHTML = `
+        <div class="install-card">
+          <div class="install-card-title">📲 Pasang di iPhone / iPad</div>
+          <div class="ios-steps">
+            <div class="ios-step">
+              <span class="ios-step-icon">⬆️</span>
+              <span class="ios-step-text">Ketuk ikon <strong>Bagikan (Share)</strong> di toolbar bawah Safari</span>
+            </div>
+            <div class="ios-step">
+              <span class="ios-step-icon">➕</span>
+              <span class="ios-step-text">Pilih <strong>"Tambahkan ke Layar Utama"</strong></span>
+            </div>
+            <div class="ios-step">
+              <span class="ios-step-icon">✏️</span>
+              <span class="ios-step-text">Nama sudah terisi <strong>Absensi BSV</strong> — ketuk <strong>Tambahkan</strong></span>
+            </div>
+            <div class="ios-step">
+              <span class="ios-step-icon">🏠</span>
+              <span class="ios-step-text">Buka app dari <strong>Home Screen</strong> — selesai!</span>
+            </div>
+          </div>
+          <a class="btn-open" href="${APP_URL}">
+            🌐 &nbsp;Buka Langsung di Browser
+          </a>
+        </div>`;
+      return;
+    }
+
+    // ── KONDISI 4: Browser belum trigger prompt (menunggu) ────
+    // Mungkin sudah pernah dismiss / belum eligible
+    container.innerHTML = `
+      <div class="install-card">
+        <div class="install-card-title">📲 Cara Install</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Ketuk <strong>⋮ Menu</strong> (titik tiga) di pojok kanan atas browser</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">Pilih <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Install App"</strong></div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">Konfirmasi install — ikon akan muncul di <strong>Home Screen</strong></div>
+          </div>
+        </div>
+        <a class="btn-open" href="${APP_URL}">
+          🌐 &nbsp;Buka Langsung di Browser
+        </a>
+      </div>`;
+  }
+
+  // ============================================================
+  // Proses install (Android)
+  // ============================================================
+  async function doInstall() {
+    if (!deferredPrompt) return;
+
+    const btn     = document.getElementById('btnInstall');
+    const label   = document.getElementById('btnLabel');
+    const spinner = document.getElementById('spinner');
+
+    btn.disabled      = true;
+    label.textContent = 'Memproses...';
+    spinner.style.display = 'block';
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+
+    if (outcome === 'accepted') {
+      label.textContent = '✅ Terpasang! Mengalihkan...';
+      spinner.style.display = 'none';
+      setTimeout(() => { window.location.href = APP_URL; }, 1200);
+    } else {
+      btn.disabled          = false;
+      label.innerHTML       = '⬇️ &nbsp;Install Sekarang';
+      spinner.style.display = 'none';
+    }
+  }
+
+  // ============================================================
+  // Init
+  // ============================================================
+  // Render awal (sebelum prompt datang)
+  window.addEventListener('DOMContentLoaded', () => {
+    renderContent();
+
+    // Jika standalone, redirect langsung tanpa render
+    if (isStandalone()) {
+      window.location.replace(APP_URL);
+    }
+  });
+
+  // Fallback: jika 3 detik tidak ada prompt, render ulang
+  setTimeout(() => {
+    if (!deferredPrompt && !isStandalone()) {
+      renderContent();
+    }
+  }, 3000);
+</script>
+</body>
+</html>
